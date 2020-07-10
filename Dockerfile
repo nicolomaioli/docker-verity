@@ -1,21 +1,18 @@
-FROM ubuntu:18.04
+FROM alpine:3.12
 
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apk add --update --no-cache \
+	openssl \
+	sqlite \
+	libzmq \
+	libsodium \
+	maven \
+	openjdk11
 
-# Install requirements
-RUN apt-get update && \
-    apt-get install -y \
-    apt-utils \
-    software-properties-common \
-    sqlite3 \
-    maven \
-    openjdk-11-jdk
+# Maven setup
+ENV JAVA_HOME=/usr/lib/jvm/default-jvm
 
-# Static environment variables
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+# Copy libindy.so
+ARG LIBINDY_PACKAGE="libindy_linux-x86_64-unknown-musl_1.15.0.tar.gz"
 
-# Install libindy
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CE7709D068DB5E88 && \
-    add-apt-repository "deb https://repo.sovrin.org/sdk/deb bionic stable" && \
-    apt-get update && \
-    apt-get install -y libindy
+COPY ./dist/${LIBINDY_PACKAGE} .
+RUN tar -C /usr/lib -xvf ${LIBINDY_PACKAGE} && rm ${LIBINDY_PACKAGE}
